@@ -1,0 +1,9 @@
+streamlit
+streamlit-webrtc
+pydub
+av
+numpy
+scipy
+openpyxl
+requests
+yt_dlp
