@@ -19,23 +19,13 @@ for folder in folders:
 # --- Sidebar ---
 with st.sidebar:
     st.image("assets/logo.png", width=120)
-    selected = option_menu(
-        menu_title=None,  # No title
-        options=["Upload Voice", "Generate Audio", "Merge with Music", "Manage Files", "User Data"],
-        icons=["upload", "mic", "music-note", "folder", "people"],
-        default_index=0,
-        orientation="vertical",
-        styles={
-            "container": {"padding": "0!important", "background-color": "#fff"},
-            "icon": {"color": "red", "font-size": "18px"},
-            "nav-link": {
-                "font-size": "16px",
-                "text-align": "left",
-                "margin": "5px",
-                "--hover-color": "#fdd"},
-            "nav-link-selected": {"background-color": "#d62828", "color": "white"},
-        }
+    st.title("Voice Cloning")
+    selected = st.radio(
+        "Select Section",
+        ["📤 Upload Voice", "🗣️ Generate Audio", "🎵 Merge with Music", "🗂️ Manage Files", "📄 User Data"],
+        index=0
     )
+
 st.title("🗣️ Voice Cloning with Background Music")
 
 # --- Block 1: Upload Voice ---
