@@ -6,6 +6,7 @@ from utils.cloudinary_utils import upload_audio_to_cloudinary
 from utils.github_utils import upload_excel_to_github
 from utils.audio_processing import combine_voice_and_music
 from openpyxl import Workbook, load_workbook
+from streamlit_option_menu import option_menu
 import os, pandas as pd, uuid
 import time
 
@@ -18,13 +19,23 @@ for folder in folders:
 # --- Sidebar ---
 with st.sidebar:
     st.image("assets/logo.png", width=120)
-    st.title("Voice Cloning")
-    selected = st.radio(
-        "Select Section",
-        ["📤 Upload Voice", "🗣️ Generate Audio", "🎵 Merge with Music", "🗂️ Manage Files", "📄 User Data"],
-        index=0
+    selected = option_menu(
+        menu_title=None,  # No title
+        options=["Upload Voice", "Generate Audio", "Merge with Music", "Manage Files", "User Data"],
+        icons=["upload", "mic", "music-note", "folder", "people"],
+        default_index=0,
+        orientation="vertical",
+        styles={
+            "container": {"padding": "0!important", "background-color": "#ae2012"},
+            "icon": {"color": "red", "font-size": "18px"},
+            "nav-link": {
+                "font-size": "16px",
+                "text-align": "left",
+                "margin": "5px",
+                "--hover-color": "#fdd"},
+            "nav-link-selected": {"background-color": "#fefae0", "color": "white"},
+        }
     )
-
 st.title("🗣️ Voice Cloning with Background Music")
 
 # --- Block 1: Upload Voice ---
