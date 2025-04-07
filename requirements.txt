@@ -11,3 +11,4 @@ cloudinary
 PyGithub
 streamlit-option-menu
 browser-cookie3
+librosa
