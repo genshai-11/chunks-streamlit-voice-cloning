@@ -26,14 +26,14 @@ with st.sidebar:
         default_index=0,
         orientation="vertical",
         styles={
-            "container": {"padding": "0!important", "background-color": "#ae2012"},
+            "container": {"padding": "0!important", "background-color": "#fff"},
             "icon": {"color": "red", "font-size": "18px"},
             "nav-link": {
                 "font-size": "16px",
                 "text-align": "left",
                 "margin": "5px",
                 "--hover-color": "#fdd"},
-            "nav-link-selected": {"background-color": "#fefae0", "color": "white"},
+            "nav-link-selected": {"background-color": "#d62828", "color": "white"},
         }
     )
 st.title("🗣️ Voice Cloning with Background Music")
