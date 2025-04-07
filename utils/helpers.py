@@ -4,8 +4,20 @@ import uuid
 from openpyxl import Workbook, load_workbook
 from io import BytesIO
 
-def generate_user_id():
-    return "U" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:4]
+def generate_user_id(user_name):
+    """
+    Generate a unique user ID based on the user's name.
+    
+    Args:
+        user_name (str): The full name of the user.
+    
+    Returns:
+        str: A unique user ID in the format 'cleaned_name_randomsuffix'.
+    """
+    import uuid
+    clean_name = "".join(c for c in user_name.lower() if c.isalnum())
+    return f"{clean_name}_{uuid.uuid4().hex[:8]}"
+
 
 def save_user_data(user_id, voice_id, name=None, email=None):
     path = "data/User_Data.xlsx"
