@@ -1,16 +1,16 @@
 import streamlit as st
 from utils.helpers import generate_user_id, save_user_data, load_existing_users, load_text_inputs, save_text_template
-from utils.speechify_api import get_voice_id, generate_audio_from_text
-from utils.audio_processing import combine_voice_and_music
 from utils.youtube_downloader import download_youtube_audio
+from utils.speechify_api import get_voice_id, generate_audio_from_text
 from utils.cloudinary_utils import upload_audio_to_cloudinary
 from utils.github_utils import upload_excel_to_github
+from utils.audio_processing import combine_voice_and_music
+from openpyxl import Workbook, load_workbook
 import os, pandas as pd, uuid
 import time
 
 # --- Initialization ---
 st.set_page_config(page_title="Voice Cloning App", layout="wide")
-
 folders = ["data/User_Records", "data/Generated_Audio", "data/Merge_Audio", "data/Background_Music"]
 for folder in folders:
     os.makedirs(folder, exist_ok=True)
@@ -30,12 +30,12 @@ st.title("🗣️ Voice Cloning with Background Music")
 # --- Block 1: Upload Voice ---
 if selected.startswith("📤 Upload Voice"):
     st.header("🎤 Register New User's Voice")
-    user_name = st.text_input("Full Name")
+    user_name = st.text_input("Full Name")  # This line is already here
     email = st.text_input("Email (optional)")
     uploaded_audio = st.file_uploader("Upload MP3 voice file", type=["mp3"])
 
     if st.button("Register Uploaded Voice") and uploaded_audio:
-        user_id = generate_user_id(user_name)
+        user_id = generate_user_id(user_name)  # Pass user_name here
         audio_path = f"data/User_Records/{user_id}.mp3"
         with open(audio_path, "wb") as f:
             f.write(uploaded_audio.read())
@@ -129,19 +129,101 @@ elif selected.startswith("🗂️ Manage Files"):
     folders = ["User_Records", "Generated_Audio", "Merge_Audio", "Background_Music"]
     tab = st.tabs(folders)
 
+    # Import libraries for waveform visualization
+    import librosa
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import io
+    from PIL import Image
+
+    @st.cache_data
+    def plot_waveform(audio_path):
+        """
+        Generate a waveform image for an audio file.
+        
+        Args:
+            audio_path (str): Path to the audio file.
+        
+        Returns:
+            PIL.Image: Image of the waveform.
+        """
+        try:
+            y, sr = librosa.load(audio_path, sr=None)
+            plt.figure(figsize=(4, 1), dpi=100)
+            plt.plot(y, color="#1f77b4")
+            plt.axis("off")
+            buf = io.BytesIO()
+            plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
+            plt.close()
+            buf.seek(0)
+            return Image.open(buf)
+        except Exception as e:
+            st.error(f"Failed to generate waveform for {audio_path}: {str(e)}")
+            return None
+
     for folder, t in zip(folders, tab):
         with t:
-            files = os.listdir(f"data/{folder}")
-            for file in files:
-                path = os.path.join(f"data/{folder}", file)
-                st.write(f"🎵 {file}")
-                st.audio(path)
-                with open(path, "rb") as f:
-                    st.download_button("⬇️", f, file_name=file, key=f"{folder}_{file}")
-                if st.button("🗑️", key=f"del_{folder}_{file}"):
-                    os.remove(path)
-                    st.warning(f"Deleted {file}")
-                    st.experimental_rerun()
+            base_path = f"data/{folder}"
+            audio_extensions = (".mp3", ".wav", ".ogg")
+            audio_files = []
+
+            # Handle nested directories for Generated_Audio and Merge_Audio
+            if folder in ["Generated_Audio", "Merge_Audio"]:
+                for user_folder in os.listdir(base_path):
+                    user_path = os.path.join(base_path, user_folder)
+                    if os.path.isdir(user_path):
+                        for file in os.listdir(user_path):
+                            file_path = os.path.join(user_path, file)
+                            if os.path.isfile(file_path) and file.lower().endswith(audio_extensions):
+                                audio_files.append((user_folder, file, file_path))
+            else:
+                for file in os.listdir(base_path):
+                    file_path = os.path.join(base_path, file)
+                    if os.path.isfile(file_path) and file.lower().endswith(audio_extensions):
+                        audio_files.append((None, file, file_path))
+
+            if not audio_files:
+                st.write("No audio files found in this folder.")
+                continue
+
+            for user_folder, file, path in audio_files:
+                path = path.replace("\\", "/")
+                display_name = f"{user_folder}/{file}" if user_folder else file
+
+                col1, col2, col3, col4 = st.columns([2, 3, 3, 1])
+
+                with col1:
+                    # Display file name and metadata
+                    y, sr = librosa.load(path, sr=None)
+                    duration = librosa.get_duration(y=y, sr=sr)
+                    file_size = os.path.getsize(path) / 1024  # Size in KB
+                    st.write(f"🎵 {display_name} ({duration:.2f}s, {file_size:.2f} KB)")
+
+                with col2:
+                    waveform_image = plot_waveform(path)
+                    if waveform_image:
+                        st.image(waveform_image, use_column_width=True)
+
+                with col3:
+                    try:
+                        st.audio(path)
+                    except Exception as e:
+                        st.error(f"❌ Failed to play {display_name}: {str(e)}")
+
+                with col4:
+                    with open(path, "rb") as f:
+                        st.download_button(
+                            label="⬇️",
+                            data=f,
+                            file_name=file,
+                            key=f"download_{folder}_{user_folder}_{file}"
+                        )
+                    if st.button("🗑️", key=f"del_{folder}_{user_folder}_{file}"):
+                        os.remove(path)
+                        st.warning(f"Deleted {display_name}")
+                        st.experimental_rerun()
+
+                st.markdown("---")
 
 # --- Block 5: User Data Management ---
 elif selected.startswith("📄 User Data"):
