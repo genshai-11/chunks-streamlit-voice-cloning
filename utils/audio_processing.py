@@ -1,7 +1,16 @@
 from utils.cloudinary_utils import upload_audio_to_cloudinary
 from pydub import AudioSegment
 import os
+from pydub import AudioSegment
+import shutil
 
+# Check if ffmpeg is available, or set path manually
+ffmpeg_path = shutil.which("ffmpeg")
+if ffmpeg_path:
+    AudioSegment.converter = ffmpeg_path
+else:
+    print("⚠️ Warning: ffmpeg not found. Audio processing may fail. Please install ffmpeg and add it to PATH.")
+#--
 def combine_voice_and_music(voice_path, music_path, output_path, fade_in_ms=1000, fade_out_ms=1000, volume_reduction_db=5):
     try:
         voice = AudioSegment.from_file(voice_path)
