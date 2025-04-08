@@ -1,8 +1,28 @@
 from yt_dlp import YoutubeDL
 import os
+import shutil
 
 def download_youtube_audio(url, output_dir):
     try:
+        # 🔧 Get ffmpeg and ffprobe paths
+        ffmpeg_dir = shutil.which("ffmpeg")
+        ffprobe_dir = shutil.which("ffprobe")
+
+        if not ffmpeg_dir or not ffprobe_dir:
+            print("❌ ffmpeg or ffprobe not found. Please install or set PATH manually.")
+            return None
+
+        # Extract directory from full binary path
+        ffmpeg_location = os.path.dirname(ffmpeg_dir)
+
+        # Optional: set environment variables (helps other libs like imageio/moviepy)
+        os.environ["PATH"] += os.pathsep + ffmpeg_location
+        os.environ["FFMPEG_BINARY"] = ffmpeg_dir
+        os.environ["FFPROBE_BINARY"] = ffprobe_dir
+
+        print(f"🔧 Using ffmpeg at: {ffmpeg_dir}")
+        print(f"🔧 Using ffprobe at: {ffprobe_dir}")
+
         ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
@@ -11,6 +31,7 @@ def download_youtube_audio(url, output_dir):
                 'preferredcodec': 'mp3',
                 'preferredquality': '192',
             }],
+            'ffmpeg_location': ffmpeg_location,  # 👈 required for yt_dlp to find ffmpeg
             'quiet': True,
         }
 
