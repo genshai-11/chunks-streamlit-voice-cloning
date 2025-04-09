@@ -1,3 +1,6 @@
+import os
+os.environ["PATH"] += os.pathsep + "/usr/bin"  # Streamlit Cloud’s FFmpeg location
+# Rest of your imports and code...
 import streamlit as st
 from utils.helpers import generate_user_id, save_user_data, load_existing_users, load_text_inputs, save_text_template
 from utils.youtube_downloader import download_youtube_audio
@@ -9,6 +12,7 @@ from openpyxl import Workbook, load_workbook
 from streamlit_option_menu import option_menu
 import os, pandas as pd, uuid
 import time
+
 
 # --- Initialization ---
 st.set_page_config(page_title="Voice Cloning App", layout="wide")
