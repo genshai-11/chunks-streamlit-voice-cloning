@@ -122,8 +122,6 @@ elif selected.startswith("🎵 Merge with Music"):
                             st.markdown(f"[Cloudinary Link]({music_cloud_url})")
                         if st.button("Refresh Library"):
                             st.experimental_rerun()
-                    else:
-                        st.error("❌ Failed to download audio.")
 
             elif music_option == "Select from Library":
                 tracks = [f for f in os.listdir("data/Background_Music") if f.endswith(".mp3")]
