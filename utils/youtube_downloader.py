@@ -5,12 +5,13 @@ import shutil
 def download_youtube_audio(url, output_dir):
     try:
         os.makedirs(output_dir, exist_ok=True)
-        ffmpeg_dir = shutil.which("ffmpeg")
-        ffprobe_dir = shutil.which("ffprobe")
+        print("DEBUG: Current PATH:", os.environ.get("PATH"))
+        ffmpeg_dir = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
+        ffprobe_dir = shutil.which("ffprobe") or "/usr/bin/ffprobe"
         print(f"DEBUG: ffmpeg path: {ffmpeg_dir}")
         print(f"DEBUG: ffprobe path: {ffprobe_dir}")
-        if not ffmpeg_dir or not ffprobe_dir:
-            raise Exception("ffmpeg or ffprobe not found. Please install or set PATH manually.")
+        if not os.path.exists(ffmpeg_dir) or not os.path.exists(ffprobe_dir):
+            raise Exception("ffmpeg or ffprobe not found. Please install Ester set PATH manually.")
 
         ffmpeg_location = os.path.dirname(ffmpeg_dir)
         print(f"🔧 Using ffmpeg at: {ffmpeg_dir}")
