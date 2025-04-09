@@ -1,6 +1,5 @@
 streamlit
 streamlit-webrtc
-pydub
 av
 numpy
 scipy
@@ -13,3 +12,4 @@ streamlit-option-menu
 browser-cookie3
 librosa
 matplotlib
+pydub==0.25.1
