@@ -108,12 +108,22 @@ elif selected.startswith("🎵 Merge with Music"):
             elif music_option == "YouTube Link":
                 youtube_url = st.text_input("YouTube URL")
                 if st.button("Download from YouTube") and youtube_url:
-                    music_path = download_youtube_audio(youtube_url, "data/Background_Music")
-                    if music_path:
+                    with st.spinner("Downloading from YouTube..."):
+                        try:
+                            music_path = download_youtube_audio(youtube_url, "data/Background_Music")
+                        except Exception as e:
+                            st.error(f"❌ {str(e)}")
+                            music_path = None
+                    
+                    if music_path and os.path.exists(music_path):
+                        st.success(f"✅ Audio downloaded: {os.path.basename(music_path)}")
                         music_cloud_url = upload_audio_to_cloudinary(music_path, folder="Background_Music")
-                        st.success(f"✅ Uploaded: [Link]({music_cloud_url})")
+                        if music_cloud_url:
+                            st.markdown(f"[Cloudinary Link]({music_cloud_url})")
+                        if st.button("Refresh Library"):
+                            st.experimental_rerun()
                     else:
-                        st.error("❌ YouTube download failed.")
+                        st.error("❌ Failed to download audio.")
 
             elif music_option == "Select from Library":
                 tracks = [f for f in os.listdir("data/Background_Music") if f.endswith(".mp3")]
