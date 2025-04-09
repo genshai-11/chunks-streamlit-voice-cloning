@@ -1,6 +1,3 @@
-import os
-os.environ["PATH"] += os.pathsep + "/usr/bin"  # Streamlit Cloud’s FFmpeg location
-# Rest of your imports and code...
 import streamlit as st
 from utils.helpers import generate_user_id, save_user_data, load_existing_users, load_text_inputs, save_text_template
 from utils.youtube_downloader import download_youtube_audio
@@ -10,9 +7,14 @@ from utils.github_utils import upload_excel_to_github
 from utils.audio_processing import combine_voice_and_music
 from openpyxl import Workbook, load_workbook
 from streamlit_option_menu import option_menu
-import os, pandas as pd, uuid
+import os
+import pandas as pd
+import uuid
 import time
+import shutil
 
+# Ensure FFmpeg is in PATH for Streamlit Cloud
+os.environ["PATH"] += os.pathsep + "/usr/bin"
 
 # --- Initialization ---
 st.set_page_config(page_title="Voice Cloning App", layout="wide")
@@ -35,12 +37,12 @@ st.title("🗣️ Voice Cloning with Background Music")
 # --- Block 1: Upload Voice ---
 if selected.startswith("📤 Upload Voice"):
     st.header("🎤 Register New User's Voice")
-    user_name = st.text_input("Full Name")  # This line is already here
+    user_name = st.text_input("Full Name")
     email = st.text_input("Email (optional)")
     uploaded_audio = st.file_uploader("Upload MP3 voice file", type=["mp3"])
 
     if st.button("Register Uploaded Voice") and uploaded_audio:
-        user_id = generate_user_id(user_name)  # Pass user_name here
+        user_id = generate_user_id(user_name)
         audio_path = f"data/User_Records/{user_id}.mp3"
         with open(audio_path, "wb") as f:
             f.write(uploaded_audio.read())
@@ -79,12 +81,13 @@ elif selected.startswith("🗣️ Generate Audio"):
                 st.audio(output_path)
                 if cloud_url:
                     st.markdown(f"[Cloudinary Link]({cloud_url})")
+            else:
+                st.error("❌ Failed to generate audio.")
 
 # --- Block 3: Merge with Music ---
 elif selected.startswith("🎵 Merge with Music"):
     st.header("🎶 Merge Voice Audio with Background Music")
     
-    # Check if there are any folders in data/Generated_Audio
     generated_audio_path = "data/Generated_Audio"
     available_folders = [f for f in os.listdir(generated_audio_path) if os.path.isdir(os.path.join(generated_audio_path, f))]
     
@@ -116,9 +119,8 @@ elif selected.startswith("🎵 Merge with Music"):
                         try:
                             music_path = download_youtube_audio(youtube_url, "data/Background_Music")
                         except Exception as e:
-                            st.error(f"❌ {str(e)}")
+                            st.error(f"❌ Download failed: {str(e)}")
                             music_path = None
-                    
                     if music_path and os.path.exists(music_path):
                         st.success(f"✅ Audio downloaded: {os.path.basename(music_path)}")
                         music_cloud_url = upload_audio_to_cloudinary(music_path, folder="Background_Music")
@@ -137,14 +139,16 @@ elif selected.startswith("🎵 Merge with Music"):
 
             fade_in = st.slider("Fade In (ms)", 0, 5000, 1000)
             fade_out = st.slider("Fade Out (ms)", 0, 5000, 1000)
-            volume = st.slider("Volume Reduction (dB)", 0, 20, 5)
+            volume = st.slider("Volume 
+   
+Reduction (dB)", 0, 20, 5)
 
             if st.button("Merge") and music_path:
                 voice_path = f"data/Generated_Audio/{user_folder}/{selected_audio}"
                 output_file = f"data/Merge_Audio/{user_folder}_{selected_audio.replace('.mp3', '_merged.mp3')}"
                 with st.spinner("Merging audio..."):
                     result = combine_voice_and_music(voice_path, music_path, output_file, fade_in, fade_out, volume)
-                if result:
+                if result and os.path.exists(result):
                     merged_cloud_url = upload_audio_to_cloudinary(output_file, folder="Merge_Audio")
                     st.success("🎉 Merged successfully!")
                     st.audio(output_file)
@@ -159,7 +163,6 @@ elif selected.startswith("🗂️ Manage Files"):
     folders = ["User_Records", "Generated_Audio", "Merge_Audio", "Background_Music"]
     tab = st.tabs(folders)
 
-    # Import libraries for waveform visualization
     import librosa
     import matplotlib.pyplot as plt
     import numpy as np
@@ -168,15 +171,6 @@ elif selected.startswith("🗂️ Manage Files"):
 
     @st.cache_data
     def plot_waveform(audio_path):
-        """
-        Generate a waveform image for an audio file.
-        
-        Args:
-            audio_path (str): Path to the audio file.
-        
-        Returns:
-            PIL.Image: Image of the waveform.
-        """
         try:
             y, sr = librosa.load(audio_path, sr=None)
             plt.figure(figsize=(4, 1), dpi=100)
@@ -197,7 +191,6 @@ elif selected.startswith("🗂️ Manage Files"):
             audio_extensions = (".mp3", ".wav", ".ogg")
             audio_files = []
 
-            # Handle nested directories for Generated_Audio and Merge_Audio
             if folder in ["Generated_Audio", "Merge_Audio"]:
                 for user_folder in os.listdir(base_path):
                     user_path = os.path.join(base_path, user_folder)
@@ -223,10 +216,9 @@ elif selected.startswith("🗂️ Manage Files"):
                 col1, col2, col3, col4 = st.columns([2, 3, 3, 1])
 
                 with col1:
-                    # Display file name and metadata
                     y, sr = librosa.load(path, sr=None)
                     duration = librosa.get_duration(y=y, sr=sr)
-                    file_size = os.path.getsize(path) / 1024  # Size in KB
+                    file_size = os.path.getsize(path) / 1024
                     st.write(f"🎵 {display_name} ({duration:.2f}s, {file_size:.2f} KB)")
 
                 with col2:
