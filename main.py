@@ -139,9 +139,7 @@ elif selected.startswith("🎵 Merge with Music"):
 
             fade_in = st.slider("Fade In (ms)", 0, 5000, 1000)
             fade_out = st.slider("Fade Out (ms)", 0, 5000, 1000)
-            volume = st.slider("Volume 
-   
-Reduction (dB)", 0, 20, 5)
+            volume = st.slider("Volume Reduction (dB)", 0, 20, 5)
 
             if st.button("Merge") and music_path:
                 voice_path = f"data/Generated_Audio/{user_folder}/{selected_audio}"
@@ -165,9 +163,7 @@ elif selected.startswith("🗂️ Manage Files"):
 
     import librosa
     import matplotlib.pyplot as plt
-    import numpy as np
-    import io
-    from PIL import Image
+    import numpy asectangle
 
     @st.cache_data
     def plot_waveform(audio_path):
