@@ -142,14 +142,16 @@ elif selected.startswith("🎵 Merge with Music"):
             if st.button("Merge") and music_path:
                 voice_path = f"data/Generated_Audio/{user_folder}/{selected_audio}"
                 output_file = f"data/Merge_Audio/{user_folder}_{selected_audio.replace('.mp3', '_merged.mp3')}"
-
-                combine_voice_and_music(voice_path, music_path, output_file, fade_in, fade_out, volume)
-                merged_cloud_url = upload_audio_to_cloudinary(output_file, folder="Merge_Audio")
-
-                st.success("🎉 Merged successfully!")
-                st.audio(output_file)
-                if merged_cloud_url:
-                    st.markdown(f"[Cloudinary Link]({merged_cloud_url})")
+                with st.spinner("Merging audio..."):
+                    result = combine_voice_and_music(voice_path, music_path, output_file, fade_in, fade_out, volume)
+                if result:
+                    merged_cloud_url = upload_audio_to_cloudinary(output_file, folder="Merge_Audio")
+                    st.success("🎉 Merged successfully!")
+                    st.audio(output_file)
+                    if merged_cloud_url:
+                        st.markdown(f"[Cloudinary Link]({merged_cloud_url})")
+                else:
+                    st.error("❌ Failed to merge audio. Check logs for details.")
 
 # --- Block 4: Manage Files ---
 elif selected.startswith("🗂️ Manage Files"):
