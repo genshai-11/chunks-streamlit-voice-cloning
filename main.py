@@ -79,50 +79,65 @@ elif selected.startswith("🗣️ Generate Audio"):
 # --- Block 3: Merge with Music ---
 elif selected.startswith("🎵 Merge with Music"):
     st.header("🎶 Merge Voice Audio with Background Music")
-    user_folder = st.selectbox("Select User", os.listdir("data/Generated_Audio"))
-    selected_audio = st.selectbox("Select Audio", os.listdir(f"data/Generated_Audio/{user_folder}"))
     
-    music_option = st.radio("Music Source", ["Upload MP3", "YouTube Link", "Select from Library"])
-    music_path = ""
+    # Check if there are any folders in data/Generated_Audio
+    generated_audio_path = "data/Generated_Audio"
+    available_folders = [f for f in os.listdir(generated_audio_path) if os.path.isdir(os.path.join(generated_audio_path, f))]
+    
+    if not available_folders:
+        st.warning("⚠️ No generated audio folders found. Please generate some audio first.")
+    else:
+        user_folder = st.selectbox("Select User", available_folders)
+        audio_files = [f for f in os.listdir(f"data/Generated_Audio/{user_folder}") if f.endswith(".mp3")]
+        
+        if not audio_files:
+            st.warning("⚠️ No audio files found in this folder.")
+        else:
+            selected_audio = st.selectbox("Select Audio", audio_files)
+            
+            music_option = st.radio("Music Source", ["Upload MP3", "YouTube Link", "Select from Library"])
+            music_path = ""
 
-    if music_option == "Upload MP3":
-        music_file = st.file_uploader("Upload MP3", type=["mp3"])
-        if music_file:
-            music_path = f"data/Background_Music/{music_file.name}"
-            with open(music_path, "wb") as f:
-                f.write(music_file.read())
+            if music_option == "Upload MP3":
+                music_file = st.file_uploader("Upload MP3", type=["mp3"])
+                if music_file:
+                    music_path = f"data/Background_Music/{music_file.name}"
+                    with open(music_path, "wb") as f:
+                        f.write(music_file.read())
 
-    elif music_option == "YouTube Link":
-        youtube_url = st.text_input("YouTube URL")
-        if st.button("Download from YouTube") and youtube_url:
-            music_path = download_youtube_audio(youtube_url, "data/Background_Music")
-            if music_path:
-                music_cloud_url = upload_audio_to_cloudinary(music_path, folder="Background_Music")
-                st.success(f"✅ Uploaded: [Link]({music_cloud_url})")
-            else:
-                st.error("❌ YouTube download failed.")
+            elif music_option == "YouTube Link":
+                youtube_url = st.text_input("YouTube URL")
+                if st.button("Download from YouTube") and youtube_url:
+                    music_path = download_youtube_audio(youtube_url, "data/Background_Music")
+                    if music_path:
+                        music_cloud_url = upload_audio_to_cloudinary(music_path, folder="Background_Music")
+                        st.success(f"✅ Uploaded: [Link]({music_cloud_url})")
+                    else:
+                        st.error("❌ YouTube download failed.")
 
-    elif music_option == "Select from Library":
-        tracks = [f for f in os.listdir("data/Background_Music") if f.endswith(".mp3")]
-        if tracks:
-            selected_track = st.selectbox("Choose track", tracks)
-            music_path = os.path.join("data/Background_Music", selected_track)
+            elif music_option == "Select from Library":
+                tracks = [f for f in os.listdir("data/Background_Music") if f.endswith(".mp3")]
+                if tracks:
+                    selected_track = st.selectbox("Choose track", tracks)
+                    music_path = os.path.join("data/Background_Music", selected_track)
+                else:
+                    st.warning("⚠️ No background music tracks available.")
 
-    fade_in = st.slider("Fade In (ms)", 0, 5000, 1000)
-    fade_out = st.slider("Fade Out (ms)", 0, 5000, 1000)
-    volume = st.slider("Volume Reduction (dB)", 0, 20, 5)
+            fade_in = st.slider("Fade In (ms)", 0, 5000, 1000)
+            fade_out = st.slider("Fade Out (ms)", 0, 5000, 1000)
+            volume = st.slider("Volume Reduction (dB)", 0, 20, 5)
 
-    if st.button("Merge") and music_path:
-        voice_path = f"data/Generated_Audio/{user_folder}/{selected_audio}"
-        output_file = f"data/Merge_Audio/{user_folder}_{selected_audio.replace('.mp3', '_merged.mp3')}"
+            if st.button("Merge") and music_path:
+                voice_path = f"data/Generated_Audio/{user_folder}/{selected_audio}"
+                output_file = f"data/Merge_Audio/{user_folder}_{selected_audio.replace('.mp3', '_merged.mp3')}"
 
-        combine_voice_and_music(voice_path, music_path, output_file, fade_in, fade_out, volume)
-        merged_cloud_url = upload_audio_to_cloudinary(output_file, folder="Merge_Audio")
+                combine_voice_and_music(voice_path, music_path, output_file, fade_in, fade_out, volume)
+                merged_cloud_url = upload_audio_to_cloudinary(output_file, folder="Merge_Audio")
 
-        st.success("🎉 Merged successfully!")
-        st.audio(output_file)
-        if merged_cloud_url:
-            st.markdown(f"[Cloudinary Link]({merged_cloud_url})")
+                st.success("🎉 Merged successfully!")
+                st.audio(output_file)
+                if merged_cloud_url:
+                    st.markdown(f"[Cloudinary Link]({merged_cloud_url})")
 
 # --- Block 4: Manage Files ---
 elif selected.startswith("🗂️ Manage Files"):
