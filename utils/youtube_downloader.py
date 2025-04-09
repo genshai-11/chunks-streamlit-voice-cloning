@@ -4,12 +4,11 @@ import shutil
 
 def download_youtube_audio(url, output_dir):
     try:
-        # Ensure output directory exists
         os.makedirs(output_dir, exist_ok=True)
-
-        # Check for ffmpeg and ffprobe
         ffmpeg_dir = shutil.which("ffmpeg")
         ffprobe_dir = shutil.which("ffprobe")
+        print(f"DEBUG: ffmpeg path: {ffmpeg_dir}")
+        print(f"DEBUG: ffprobe path: {ffprobe_dir}")
         if not ffmpeg_dir or not ffprobe_dir:
             raise Exception("ffmpeg or ffprobe not found. Please install or set PATH manually.")
 
@@ -32,7 +31,7 @@ def download_youtube_audio(url, output_dir):
         with YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=True)
             base_filename = ydl.prepare_filename(info)
-            mp3_path = base_filename.rsplit('.', 1)[0] + '.mp3'  # Adjust extension
+            mp3_path = base_filename.rsplit('.', 1)[0] + '.mp3'
 
         if os.path.exists(mp3_path):
             print(f"✅ MP3 found: {mp3_path}")
