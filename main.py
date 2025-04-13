@@ -22,17 +22,15 @@ from streamlit_option_menu import option_menu
 import streamlit_authenticator as stauth
 
 # --- Authentication Setup ---
-hashed_passwords = stauth.Hasher(["1234"]).generate()
+hashed_passwords = stauth.Hasher(["1234", "Chunks123"]).generate()
 
 credentials = {
     "usernames": {
         "admin": {
             "name": "Admin",
             "password": hashed_passwords[0]
-        }
-    }
-},
-       "john": {
+        },
+        "chunks": {
             "name": "Chunks",
             "password": hashed_passwords[1]
         }
