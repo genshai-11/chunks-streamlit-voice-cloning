@@ -13,3 +13,4 @@ browser-cookie3
 librosa
 matplotlib
 pydub==0.25.1
+streamlit-authenticator
