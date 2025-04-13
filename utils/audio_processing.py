@@ -10,24 +10,36 @@ fallback_ffprobe_paths = ["/usr/local/bin/ffprobe", "/usr/bin/ffprobe"]
 ffmpeg_path = shutil.which("ffmpeg") or next((p for p in fallback_ffmpeg_paths if os.path.exists(p)), None)
 ffprobe_path = shutil.which("ffprobe") or next((p for p in fallback_ffprobe_paths if os.path.exists(p)), None)
 
-# Append to PATH for other libraries that may need it
+# --- Set FFmpeg and ffprobe paths ---
+fallback_ffmpeg_paths = ["/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"]
+fallback_ffprobe_paths = ["/usr/local/bin/ffprobe", "/usr/bin/ffprobe"]
+
+ffmpeg_path = shutil.which("ffmpeg") or next((p for p in fallback_ffmpeg_paths if os.path.exists(p)), None)
+ffprobe_path = shutil.which("ffprobe") or next((p for p in fallback_ffprobe_paths if os.path.exists(p)), None)
+
+# Debug output (safe)
+print(f"DEBUG: ffmpeg path: {ffmpeg_path}, exists: {os.path.exists(ffmpeg_path) if ffmpeg_path else False}")
+print(f"DEBUG: ffprobe path: {ffprobe_path}, exists: {os.path.exists(ffprobe_path) if ffprobe_path else False}")
+
+# Append to PATH for other libraries
 if ffmpeg_path:
     os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
 
-
-# Debug PATH and tool availability
-print(f"DEBUG: Current PATH: {os.environ.get('PATH')}")
-print(f"DEBUG: ffmpeg path: {ffmpeg_path}, exists: {os.path.exists(ffmpeg_path)}")
-print(f"DEBUG: ffprobe path: {ffprobe_path}, exists: {os.path.exists(ffprobe_path)}")
-
-# Configure pydub with FFmpeg paths
-if ffmpeg_path and os.path.exists(ffmpeg_path):
+# Configure pydub
+if ffmpeg_path:
     AudioSegment.converter = ffmpeg_path
     AudioSegment.ffmpeg = ffmpeg_path
     os.environ["IMAGEIO_FFMPEG_EXE"] = ffmpeg_path
     print(f"✅ ffmpeg set to: {ffmpeg_path}")
 else:
-    raise Exception("ffmpeg not found or invalid path. Please ensure ffmpeg is installed.")
+    raise Exception("❌ ffmpeg not found or invalid path. Please install or configure it.")
+
+if ffprobe_path:
+    AudioSegment.ffprobe = ffprobe_path
+    os.environ["FFPROBE_PATH"] = ffprobe_path
+    print(f"✅ ffprobe set to: {ffprobe_path}")
+else:
+    print("⚠️ ffprobe not found. Proceeding without it.")
 
 if ffprobe_path and os.path.exists(ffprobe_path):
     AudioSegment.ffprobe = ffprobe_path
