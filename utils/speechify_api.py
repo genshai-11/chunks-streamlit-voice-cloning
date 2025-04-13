@@ -20,46 +20,35 @@ def generate_audio_from_text(text, voice_id, user_id, file_name, emotion=None, r
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
-    
-    # Escape input text
+
+    # Escape the input text to prevent XML issues
     safe_text = xml_escape.escape(text)
 
-    # Construct SSML (always include both emotion and rate)
     ssml = (
-        f'<speak xmlns:speechify="http://www.speechify.com/ssml">'
-        f'<speechify:style emotion="{emotion}" rate="{rate}">'
-        f'{safe_text}'
-        f'</speechify:style>'
-        f'</speak>'
-    )
+            f'<speak xmlns:speechify="http://www.speechify.com/ssml">'
+            f'<speechify:style emotion="{emotion}" cadence="{rate}">'
+            f'{safe_text}'
+            f'</speechify:style>'
+            f'</speak>'
+        )
     
-    # Debug SSML
-    print(f"SSML: {ssml}")
-
-    data = {
-        "input": ssml,
-        "voice_id": voice_id,
-        "audio_format": "mp3",
-        "ssml": True
-    }
-
-    try:
+        data = {
+            "input": ssml,
+            "voice_id": voice_id,
+            "audio_format": "mp3",
+            "ssml": True  # Crucial to activate SSML processing
+        }
+    
         response = requests.post("https://api.sws.speechify.com/v1/audio/speech", headers=headers, json=data)
-        response.raise_for_status()
-        audio_data = base64.b64decode(response.json().get("audio_data"))
-
-        # Sanitize file_name
-        safe_file_name = re.sub(r'[^\w\-_\.]', '_', file_name)
-        output_path = os.path.join("data", "Generated_Audio", user_id)
-        os.makedirs(output_path, exist_ok=True)
-        full_path = os.path.join(output_path, f"{safe_file_name}.mp3")
-
-        with open(full_path, "wb") as f:
-            f.write(audio_data)
-        
-        print(f"Audio saved to: {full_path}")
-        return full_path
-    except requests.RequestException as e:
-        print(f"❌ API Error: {e}")
-        print(f"Response: {response.text if 'response' in locals() else 'No response'}")
-        return None
+        if response.status_code == 200:
+            audio_data = base64.b64decode(response.json().get("audio_data"))
+            output_dir = os.path.join("data", "Generated_Audio", user_id)
+            os.makedirs(output_dir, exist_ok=True)
+            full_path = os.path.join(output_dir, f"{file_name}.mp3")
+            with open(full_path, "wb") as f:
+                f.write(audio_data)
+            return full_path
+        else:
+            # Log the error for debugging
+            print(f"Error: {response.status_code} - {response.text}")
+            return None
