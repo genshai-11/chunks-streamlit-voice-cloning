@@ -16,7 +16,11 @@ import io
 from PIL import Image
 
 ## Authentical
+
+
 import streamlit as st
+st.set_page_config(page_title="Voice Cloning App", layout="wide")
+
 import streamlit_authenticator as stauth
 
 # ✅ Hashed passwords generated beforehand
