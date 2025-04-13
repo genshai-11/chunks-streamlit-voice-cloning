@@ -19,10 +19,10 @@ from PIL import Image
 import streamlit as st
 import streamlit_authenticator as stauth
 
-# 1️⃣ Hash password the classic way
+# ✅ Hashed passwords generated beforehand
 hashed_passwords = stauth.Hasher(["1234"]).generate()
 
-# 2️⃣ Store credentials inline
+# ✅ Define credentials
 credentials = {
     "usernames": {
         "admin": {
@@ -32,26 +32,26 @@ credentials = {
     }
 }
 
-# 3️⃣ Authenticate setup
+# ✅ Instantiate the authenticator with required parameters
 authenticator = stauth.Authenticate(
     credentials,
-    "voice_clone_cookie",
-    "secret_key_for_cookie",
+    cookie_name="voice_clone_cookie",    # unique identifier for user session
+    key="some_random_secret",            # secure random string
     cookie_expiry_days=7
 )
 
-# 4️⃣ Login form
-name, authentication_status, username = authenticator.login("Login", "main")
+# ✅ Login UI
+name, auth_status, username = authenticator.login("Login", "main")
 
-# 5️⃣ Auth check logic
-if authentication_status is True:
+if auth_status:
     authenticator.logout("Logout", "sidebar")
-    st.sidebar.success(f"Welcome, {name} 👋")
-    st.write("✅ You’re logged in. Your app starts here.")
-elif authentication_status is False:
+    st.sidebar.success(f"👋 Welcome {name}")
+    st.write("✅ App unlocked. Show your app here.")
+elif auth_status is False:
     st.error("❌ Incorrect username or password")
-elif authentication_status is None:
-    st.warning("⚠️ Please enter your username and password")
+elif auth_status is None:
+    st.warning("Please enter your credentials")
+
 
 
 ##
