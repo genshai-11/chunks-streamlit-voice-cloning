@@ -29,11 +29,17 @@ for folder in folders:
 with st.sidebar:
     st.image("assets/logo.png", width=120)
     st.title("Voice Cloning")
-    selected = st.radio(
-        "Select Section",
-        ["📤 Upload Voice", "🗣️ Generate Audio", "🎵 Merge with Music", "🗂️ Manage Files", "📄 User Data"],
-        index=0
-    )
+
+    section_options = [
+        "📤 Upload Voice",
+        "🗣️ Generate Audio",
+        "🎵 Merge with Music",
+        "🗂️ Manage Files",
+        "📄 User Data"
+    ]
+
+    selected = st.selectbox("Choose Section", section_options)
+
 
 st.title("🗣️ Voice Cloning with Background Music")
 
