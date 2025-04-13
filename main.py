@@ -14,7 +14,7 @@ import time
 import shutil
 import io
 from PIL import Image
-
+from streamlit_option_menu import option_menu
 
 # Ensure FFmpeg is in PATH for Streamlit Cloud
 os.environ["PATH"] += os.pathsep + "/usr/bin"
