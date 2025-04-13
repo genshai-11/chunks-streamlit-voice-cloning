@@ -21,7 +21,7 @@ credentials = {
     "usernames": {
         "admin": {
             "name": "Admin",
-            "password": stauth.Hasher(["1234"]).generate()[0]
+            "password": stauth.Hasher().generate("1234")[0]
         }
     }
 }
