@@ -27,6 +27,8 @@ def generate_audio_from_text(text, voice_id, user_id, file_name, emotion=None, r
     # Construct SSML with emotion and cadence inside <speechify:style>
     if emotion:
         ssml = (
+            f'<speak xmlns:speechify="http://www.speechify.com/ssml">'
+            f'<speechify:style emotion="{emotion}" rate="{rate}">'
             f'{safe_text}'
             f'</speechify:style>'
             f'</speak>'
