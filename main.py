@@ -12,6 +12,9 @@ import pandas as pd
 import uuid
 import time
 import shutil
+import io
+from PIL import Image
+
 
 # Ensure FFmpeg is in PATH for Streamlit Cloud
 os.environ["PATH"] += os.pathsep + "/usr/bin"
@@ -163,7 +166,7 @@ elif selected.startswith("🗂️ Manage Files"):
 
     import librosa
     import matplotlib.pyplot as plt
-    import numpy asectangle
+    import numpy as np
 
     @st.cache_data
     def plot_waveform(audio_path):
