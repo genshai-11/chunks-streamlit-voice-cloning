@@ -31,6 +31,12 @@ credentials = {
             "password": hashed_passwords[0]
         }
     }
+},
+       "john": {
+            "name": "Chunks",
+            "password": hashed_passwords[1]
+        }
+    }
 }
 
 authenticator = stauth.Authenticate(
