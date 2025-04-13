@@ -223,7 +223,7 @@ elif selected.startswith("🗂️ Manage Files"):
                 with col2:
                     waveform_image = plot_waveform(path)
                     if waveform_image:
-                        st.image(waveform_image, use_column_width=True)
+                        st.image(waveform_image, use_container_width=True)
 
                 with col3:
                     try:
