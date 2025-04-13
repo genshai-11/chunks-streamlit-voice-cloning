@@ -14,7 +14,6 @@ import time
 import shutil
 import io
 from PIL import Image
-from streamlit_option_menu import option_menu
 
 # Ensure FFmpeg is in PATH for Streamlit Cloud
 os.environ["PATH"] += os.pathsep + "/usr/bin"
@@ -28,15 +27,13 @@ for folder in folders:
 # --- Sidebar ---
 with st.sidebar:
     st.image("assets/logo.png", width=120)
-    st.title("Voice Cloning")
-    selected = st.radio(
-        "Select Section",
-        ["📤 Upload Voice", "🗣️ Generate Audio", "🎵 Merge with Music", "🗂️ Manage Files", "📄 User Data"],
-        index=0
+    selected = option_menu(
+        menu_title="Voice Cloning",
+        options=["📤 Upload Voice", "🗣️ Generate Audio", "🎵 Merge with Music", "🗂️ Manage Files", "📄 User Data"],
+        icons=["cloud-upload", "mic", "music-note", "folder", "file-earmark-text"],
+        default_index=0,
+        menu_icon="cast"
     )
-
-
-    selected = st.selectbox("Choose Section", section_options)
 
 
 st.title("🗣️ Voice Cloning with Background Music")
