@@ -54,6 +54,26 @@ elif auth_status:
     authenticator.logout("Logout", "sidebar")
     st.sidebar.success(f"👋 Welcome {name}")
 
+    # 💡 main app content continues here
+
+    # Ensure FFmpeg is in PATH for Streamlit Cloud
+    os.environ["PATH"] += os.pathsep + "/usr/bin"
+
+    folders = ["data/User_Records", "data/Generated_Audio", "data/Merge_Audio", "data/Background_Music"]
+    for folder in folders:
+        os.makedirs(folder, exist_ok=True)
+
+    with st.sidebar:
+        st.image("assets/logo.png", width=120)
+        selected = option_menu(
+            menu_title="Voice Cloning",
+            options=["📤 Upload Voice", "🗣️ Generate Audio", "🎵 Merge with Music", "🗂️ Manage Files", "📄 User Data"],
+            icons=["cloud-upload", "mic", "music-note", "folder", "file-earmark-text"],
+            default_index=0,
+            menu_icon="cast"
+        )
+
+    st.title("🗣️ Voice Cloning with Background Music")
     # 💡 main app content continues here...
     
     # --- Block 1: Upload Voice ---
@@ -287,21 +307,4 @@ elif auth_status:
                 else:
                     st.warning("⚠️ Enter token and repo name")
 
-    # Ensure FFmpeg is in PATH for Streamlit Cloud
-    os.environ["PATH"] += os.pathsep + "/usr/bin"
 
-    folders = ["data/User_Records", "data/Generated_Audio", "data/Merge_Audio", "data/Background_Music"]
-    for folder in folders:
-        os.makedirs(folder, exist_ok=True)
-
-    with st.sidebar:
-        st.image("assets/logo.png", width=120)
-        selected = option_menu(
-            menu_title="Voice Cloning",
-            options=["📤 Upload Voice", "🗣️ Generate Audio", "🎵 Merge with Music", "🗂️ Manage Files", "📄 User Data"],
-            icons=["cloud-upload", "mic", "music-note", "folder", "file-earmark-text"],
-            default_index=0,
-            menu_icon="cast"
-        )
-
-    st.title("🗣️ Voice Cloning with Background Music")
