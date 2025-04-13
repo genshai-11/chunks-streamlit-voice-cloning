@@ -3,9 +3,17 @@ from pydub import AudioSegment
 import os
 import shutil
 
-# 🔧 Set FFmpeg and ffprobe paths explicitly for Streamlit Cloud
-ffmpeg_path = shutil.which("ffmpeg") or "/usr/bin/ffmpeg"
-ffprobe_path = shutil.which("ffprobe") or "/usr/bin/ffprobe"
+# --- Set FFmpeg and ffprobe paths ---
+fallback_ffmpeg_paths = ["/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"]
+fallback_ffprobe_paths = ["/usr/local/bin/ffprobe", "/usr/bin/ffprobe"]
+
+ffmpeg_path = shutil.which("ffmpeg") or next((p for p in fallback_ffmpeg_paths if os.path.exists(p)), None)
+ffprobe_path = shutil.which("ffprobe") or next((p for p in fallback_ffprobe_paths if os.path.exists(p)), None)
+
+# Append to PATH for other libraries that may need it
+if ffmpeg_path:
+    os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
+
 
 # Debug PATH and tool availability
 print(f"DEBUG: Current PATH: {os.environ.get('PATH')}")
