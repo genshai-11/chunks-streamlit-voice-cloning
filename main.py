@@ -56,7 +56,7 @@ elif auth_status:
     folders = ["data/User_Records", "data/Generated_Audio", "data/Merge_Audio", "data/Background_Music"]
     for folder in folders:
         os.makedirs(folder, exist_ok=True)
-    # Sidebar block
+
     with st.sidebar:
         st.image("assets/logo.png", width=120)
         selected = option_menu(
