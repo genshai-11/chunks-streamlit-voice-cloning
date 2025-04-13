@@ -123,7 +123,7 @@ elif auth_status:
             for _, text in texts.items():
                 file_name = f"{uuid.uuid4().hex[:8]}"
                 output_path = generate_audio_from_text(text, users[selected_user], selected_user, file_name, emotion, rate)
-                
+        
                 if output_path:
                     cloud_url = upload_audio_to_cloudinary(output_path, folder="Generated_Audio", public_id=file_name)
                     st.audio(output_path)
