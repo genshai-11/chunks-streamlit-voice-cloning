@@ -146,7 +146,7 @@ elif selected.startswith("🎵 Merge with Music"):
 
             if st.button("Merge") and music_path:
                 voice_path = f"data/Generated_Audio/{user_folder}/{selected_audio}"
-                output_file = f"data/Merge_Audio/{user_folder}_{selected_audio.replace('.mp3', '_merged.mp3')}"
+                output_file = f"data/Merge_Audio/{user_folder}/{selected_audio.replace('.mp3', '_merged.mp3')}"
                 with st.spinner("Merging audio..."):
                     result = combine_voice_and_music(voice_path, music_path, output_file, fade_in, fade_out, volume)
                 if result and os.path.exists(result):
