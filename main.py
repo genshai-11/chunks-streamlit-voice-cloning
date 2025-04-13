@@ -16,12 +16,13 @@ import io
 from PIL import Image
 
 ## Authentical
+import streamlit as st
 import streamlit_authenticator as stauth
 
-# Generate hashed passwords
+# 1️⃣ Hash password the classic way
 hashed_passwords = stauth.Hasher(["1234"]).generate()
 
-# Setup credentials
+# 2️⃣ Store credentials inline
 credentials = {
     "usernames": {
         "admin": {
@@ -31,25 +32,27 @@ credentials = {
     }
 }
 
-# Authenticator setup
+# 3️⃣ Authenticate setup
 authenticator = stauth.Authenticate(
     credentials,
     "voice_clone_cookie",
-    "some_random_key",
+    "secret_key_for_cookie",
     cookie_expiry_days=7
 )
 
-# Login form
-name, auth_status, username = authenticator.login("Login", "main")
+# 4️⃣ Login form
+name, authentication_status, username = authenticator.login("Login", "main")
 
-if auth_status:
+# 5️⃣ Auth check logic
+if authentication_status is True:
     authenticator.logout("Logout", "sidebar")
-    st.sidebar.success(f"👋 Welcome, {name}")
-    # 👉 Your main app content goes here
-elif auth_status is False:
-    st.error("Incorrect username or password")
-elif auth_status is None:
-    st.warning("Please enter your username and password")
+    st.sidebar.success(f"Welcome, {name} 👋")
+    st.write("✅ You’re logged in. Your app starts here.")
+elif authentication_status is False:
+    st.error("❌ Incorrect username or password")
+elif authentication_status is None:
+    st.warning("⚠️ Please enter your username and password")
+
 
 ##
 # Ensure FFmpeg is in PATH for Streamlit Cloud
