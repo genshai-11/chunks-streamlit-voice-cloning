@@ -19,14 +19,15 @@ def generate_audio_from_text(text, voice_id, user_id, file_name, emotion=None, r
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
+
+    # Construct SSML with specified emotion and rate
+    ssml_text = f'<speak><speechify:style emotion="{emotion}" cadence="{rate}">{text}</speechify:style></speak>'
+
     data = {
-        "input": text,
+        "input": ssml_text,
         "voice_id": voice_id,
-        "audio_format": "mp3",
-        "speech_rate": rate
+        "audio_format": "mp3"
     }
-    if emotion:
-        data["emotion"] = emotion
 
     response = requests.post("https://api.sws.speechify.com/v1/audio/speech", headers=headers, json=data)
     if response.status_code == 200:
@@ -38,3 +39,4 @@ def generate_audio_from_text(text, voice_id, user_id, file_name, emotion=None, r
             f.write(audio_data)
         return full_path
     return None
+
