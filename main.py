@@ -14,6 +14,35 @@ import time
 import shutil
 import io
 from PIL import Image
+import streamlit_authenticator as stauth
+
+# Setup credentials (this can be externalized later)
+credentials = {
+    "usernames": {
+        "admin": {
+            "name": "Admin",
+            "password": stauth.Hasher(["1234"]).generate()[0]
+        }
+    }
+}
+
+authenticator = stauth.Authenticate(
+    credentials,
+    "app_cookie",  # cookie name
+    "app_signature",  # secret key
+    cookie_expiry_days=7
+)
+
+name, auth_status, username = authenticator.login("Login", "main")
+
+if auth_status is False:
+    st.error("❌ Incorrect username/password")
+elif auth_status is None:
+    st.warning("Please enter your credentials")
+elif auth_status:
+    authenticator.logout("Logout", "sidebar")
+    st.sidebar.success(f"👋 Welcome, {name}")
+    # 💡 Show app content below this check
 
 # Ensure FFmpeg is in PATH for Streamlit Cloud
 os.environ["PATH"] += os.pathsep + "/usr/bin"
