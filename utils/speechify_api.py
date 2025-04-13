@@ -20,28 +20,21 @@ def generate_audio_from_text(text, voice_id, user_id, file_name, emotion=None, r
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
-
-    # Escape the input text to prevent XML issues
+    
+    # Escape input text
     safe_text = xml_escape.escape(text)
 
-    # Construct SSML with emotion and cadence inside <speechify:style>
-    # Always include speechify namespace
-    if emotion:
-        ssml = (
-            f'<speak xmlns:speechify="http://www.speechify.com/ssml">'
-            f'<speechify:style emotion="{emotion}" rate="{rate}">'
-            f'{safe_text}'
-            f'</speechify:style>'
-            f'</speak>'
-        )
-    else:
-        ssml = (
-            f'<speak xmlns:speechify="http://www.speechify.com/ssml">'
-            f'<speechify:style rate="{rate}">'
-            f'{safe_text}'
-            f'</speechify:style>'
-            f'</speak>'
-        )
+    # Construct SSML (always include both emotion and rate)
+    ssml = (
+        f'<speak xmlns:speechify="http://www.speechify.com/ssml">'
+        f'<speechify:style emotion="{emotion}" rate="{rate}">'
+        f'{safe_text}'
+        f'</speechify:style>'
+        f'</speak>'
+    )
+    
+    # Debug SSML
+    print(f"SSML: {ssml}")
 
     data = {
         "input": ssml,
@@ -63,8 +56,10 @@ def generate_audio_from_text(text, voice_id, user_id, file_name, emotion=None, r
 
         with open(full_path, "wb") as f:
             f.write(audio_data)
+        
+        print(f"Audio saved to: {full_path}")
         return full_path
     except requests.RequestException as e:
-        print(f"❌ Audio Generation Error: {e}")
+        print(f"❌ API Error: {e}")
         print(f"Response: {response.text if 'response' in locals() else 'No response'}")
         return None
