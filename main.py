@@ -71,6 +71,7 @@ elif auth_status:
 
     st.title("🗣️ Voice Cloning with Background Music")
 
+
 # --- Block 1: Upload Voice ---
 if selected.startswith("📤 Upload Voice"):
     st.header("🎤 Register New User's Voice")
