@@ -14,14 +14,17 @@ import time
 import shutil
 import io
 from PIL import Image
+
 import streamlit_authenticator as stauth
+from streamlit_authenticator.hasher import Hasher
+hashed_passwords = Hasher().generate_hashed_passwords(["1234"])
 
 # Setup credentials (this can be externalized later)
 credentials = {
     "usernames": {
         "admin": {
             "name": "Admin",
-            "password": stauth.Hasher().generate("1234")[0]
+            "password": hashed_passwords[0]
         }
     }
 }
