@@ -1,32 +1,29 @@
 import streamlit as st
-from utils.helpers import generate_user_id, save_user_data, load_existing_users, load_text_inputs, save_text_template
-from utils.youtube_downloader import download_youtube_audio
-from utils.speechify_api import get_voice_id, generate_audio_from_text
-from utils.cloudinary_utils import upload_audio_to_cloudinary
-from utils.github_utils import upload_excel_to_github
-from utils.audio_processing import combine_voice_and_music
-from openpyxl import Workbook, load_workbook
-from streamlit_option_menu import option_menu
+st.set_page_config(page_title="Voice Cloning App", layout="wide")
+
 import os
 import pandas as pd
 import uuid
 import time
 import shutil
 import io
+import librosa
+import numpy as np
+import matplotlib.pyplot as plt
 from PIL import Image
 
-## Authentical
-
-
-import streamlit as st
-st.set_page_config(page_title="Voice Cloning App", layout="wide")
-
+from utils.helpers import generate_user_id, save_user_data, load_existing_users, load_text_inputs, save_text_template
+from utils.youtube_downloader import download_youtube_audio
+from utils.speechify_api import get_voice_id, generate_audio_from_text
+from utils.cloudinary_utils import upload_audio_to_cloudinary
+from utils.github_utils import upload_excel_to_github
+from utils.audio_processing import combine_voice_and_music
+from streamlit_option_menu import option_menu
 import streamlit_authenticator as stauth
 
-# ✅ Hashed passwords generated beforehand
+# --- Authentication Setup ---
 hashed_passwords = stauth.Hasher(["1234"]).generate()
 
-# ✅ Define credentials
 credentials = {
     "usernames": {
         "admin": {
@@ -36,51 +33,41 @@ credentials = {
     }
 }
 
-# ✅ Instantiate the authenticator with required parameters
 authenticator = stauth.Authenticate(
     credentials,
-    cookie_name="voice_clone_cookie",    # unique identifier for user session
-    key="some_random_secret",            # secure random string
+    cookie_name="voice_clone_cookie",
+    key="some_random_secret",
     cookie_expiry_days=7
 )
 
-# ✅ Login UI
 name, auth_status, username = authenticator.login("Login", "main")
 
-if auth_status:
-    authenticator.logout("Logout", "sidebar")
-    st.sidebar.success(f"👋 Welcome {name}")
-    st.write("✅ App unlocked. Show your app here.")
-elif auth_status is False:
+if auth_status is False:
     st.error("❌ Incorrect username or password")
 elif auth_status is None:
     st.warning("Please enter your credentials")
+elif auth_status:
+    authenticator.logout("Logout", "sidebar")
+    st.sidebar.success(f"👋 Welcome {name}")
 
+    # Ensure FFmpeg is in PATH for Streamlit Cloud
+    os.environ["PATH"] += os.pathsep + "/usr/bin"
 
+    folders = ["data/User_Records", "data/Generated_Audio", "data/Merge_Audio", "data/Background_Music"]
+    for folder in folders:
+        os.makedirs(folder, exist_ok=True)
+    # Sidebar block
+    with st.sidebar:
+        st.image("assets/logo.png", width=120)
+        selected = option_menu(
+            menu_title="Voice Cloning",
+            options=["📤 Upload Voice", "🗣️ Generate Audio", "🎵 Merge with Music", "🗂️ Manage Files", "📄 User Data"],
+            icons=["cloud-upload", "mic", "music-note", "folder", "file-earmark-text"],
+            default_index=0,
+            menu_icon="cast"
+        )
 
-##
-# Ensure FFmpeg is in PATH for Streamlit Cloud
-os.environ["PATH"] += os.pathsep + "/usr/bin"
-
-# --- Initialization ---
-st.set_page_config(page_title="Voice Cloning App", layout="wide")
-folders = ["data/User_Records", "data/Generated_Audio", "data/Merge_Audio", "data/Background_Music"]
-for folder in folders:
-    os.makedirs(folder, exist_ok=True)
-
-# --- Sidebar ---
-with st.sidebar:
-    st.image("assets/logo.png", width=120)
-    selected = option_menu(
-        menu_title="Voice Cloning",
-        options=["📤 Upload Voice", "🗣️ Generate Audio", "🎵 Merge with Music", "🗂️ Manage Files", "📄 User Data"],
-        icons=["cloud-upload", "mic", "music-note", "folder", "file-earmark-text"],
-        default_index=0,
-        menu_icon="cast"
-    )
-
-
-st.title("🗣️ Voice Cloning with Background Music")
+    st.title("🗣️ Voice Cloning with Background Music")
 
 # --- Block 1: Upload Voice ---
 if selected.startswith("📤 Upload Voice"):
