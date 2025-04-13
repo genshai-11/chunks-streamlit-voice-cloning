@@ -50,6 +50,7 @@ elif auth_status:
     authenticator.logout("Logout", "sidebar")
     st.sidebar.success(f"👋 Welcome {name}")
 
+    # 💡 main app content continues here...
 
     # Ensure FFmpeg is in PATH for Streamlit Cloud
     os.environ["PATH"] += os.pathsep + "/usr/bin"
