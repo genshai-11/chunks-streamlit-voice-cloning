@@ -106,28 +106,12 @@ elif auth_status:
         users = load_existing_users()
         selected_user = st.selectbox("Select User", list(users.keys()))
         emotion = st.selectbox("Emotion", [
-                                            None,
-                                            "Default",
-                                            "Narration",
-                                            "News",
-                                            "Conversation",
-                                            "CustomerSupport",
-                                            "Story",
-                                            "Proud",
-                                            "Excited",
-                                            "Hopeful",
-                                            "Shouting",
-                                            "Uncertain",
-                                            "Whispering",
-                                            "Terrified",
-                                            "Angry",
-                                            "Cheerful",
-                                            "Sad",
-                                            "Calm",
-                                            "Serious",
-                                            "Tired",
-                                            "Friendly"
-                                        ])
+                                                None,
+                                                "angry", "cheerful", "sad", "terrified", "relaxed",
+                                                "fearful", "surprised", "calm", "assertive", "energetic",
+                                                "warm", "direct", "bright"
+                                            ])
+
         rate = st.slider("Speech Rate (-50 to +50)", -50, 50, 0)
         custom_text = st.text_area("Text to convert (optional)")
         uploaded_excel = st.file_uploader("Excel with texts (optional)", type=["xlsx"])
