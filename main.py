@@ -17,7 +17,7 @@ from PIL import Image
 
 import streamlit_authenticator as stauth
 from streamlit_authenticator.hasher import Hasher
-hashed_passwords = Hasher().generate_hashed_passwords(["1234"])
+hashed = Hasher().generate_hashed_passwords(["1234"])
 
 # Setup credentials (this can be externalized later)
 credentials = {
