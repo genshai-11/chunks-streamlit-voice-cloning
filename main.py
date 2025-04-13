@@ -8,12 +8,6 @@ from utils.audio_processing import combine_voice_and_music
 from openpyxl import Workbook, load_workbook
 from streamlit_option_menu import option_menu
 import os
-from pydub import AudioSegment
-
-# 🔧 Set the full path to your ffmpeg binary
-AudioSegment.converter = "/usr/local/bin/ffmpeg"  # 🔁 Change this to your actual ffmpeg path
-AudioSegment.ffprobe = "/usr/local/bin/ffprobe" 
-
 import pandas as pd
 import uuid
 import time
