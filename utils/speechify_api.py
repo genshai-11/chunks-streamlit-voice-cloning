@@ -16,28 +16,36 @@ def get_voice_id(name, audio_file_path):
     return None
 
 
-
 def generate_audio_from_text(text, voice_id, user_id, file_name, emotion=None, rate="medium"):
     headers = {
         "Authorization": f"Bearer {API_KEY}",
         "Content-Type": "application/json"
     }
 
-    # Make sure text is XML-safe
+    # Escape text to avoid XML errors
     safe_text = xml_escape.escape(text)
 
-    # Build SSML with style tag
-    style_tag = f'<speechify:style emotion="{emotion}" cadence="{rate}">{safe_text}</speechify:style>' if emotion else safe_text
-    ssml_input = f'<speak xmlns:speechify="http://www.speechify.com/ssml">{style_tag}</speak>'
+    # Build SSML
+    if emotion:
+        ssml = f'''
+            <speak xmlns:speechify="http://www.speechify.com/ssml">
+                <speechify:style emotion="{emotion}" cadence="{rate}">
+                    {safe_text}
+                </speechify:style>
+            </speak>
+        '''
+    else:
+        ssml = f"<speak>{safe_text}</speak>"
 
     data = {
-        "input": ssml_input,
+        "input": ssml,
         "voice_id": voice_id,
         "audio_format": "mp3",
-        "ssml": True  # ✅ VERY IMPORTANT
+        "ssml": True  # ✅ THIS MAKES EVERYTHING WORK
     }
 
     response = requests.post("https://api.sws.speechify.com/v1/audio/speech", headers=headers, json=data)
+
     if response.status_code == 200:
         audio_data = base64.b64decode(response.json().get("audio_data"))
         output_path = os.path.join("data/Generated_Audio", user_id)
@@ -47,5 +55,5 @@ def generate_audio_from_text(text, voice_id, user_id, file_name, emotion=None, r
             f.write(audio_data)
         return full_path
     else:
-        print("❌ API Error:", response.status_code, response.text)
-    return None
+        print("❌ ERROR:", response.status_code, response.text)
+        return None
