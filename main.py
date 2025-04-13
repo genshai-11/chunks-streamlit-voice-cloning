@@ -130,7 +130,7 @@ elif selected.startswith("🎵 Merge with Music"):
                         if music_cloud_url:
                             st.markdown(f"[Cloudinary Link]({music_cloud_url})")
                         if st.button("Refresh Library"):
-                            st.experimental_rerun()
+                            st.rerun()
 
             elif music_option == "Select from Library":
                 tracks = [f for f in os.listdir("data/Background_Music") if f.endswith(".mp3")]
@@ -242,7 +242,7 @@ elif selected.startswith("🗂️ Manage Files"):
                     if st.button("🗑️", key=f"del_{folder}_{user_folder}_{file}"):
                         os.remove(path)
                         st.warning(f"Deleted {display_name}")
-                        st.experimental_rerun()
+                        st.rerun()
 
                 st.markdown("---")
 
