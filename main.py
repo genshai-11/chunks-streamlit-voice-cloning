@@ -111,7 +111,11 @@ elif auth_status:
         voice_id = users[selected_user]
 
         # --- Voice Settings ---
-        emotion = st.selectbox("Emotion", ["neutral", "excited", "angry", "sad", "hopeful"])
+        emotion = st.selectbox("Emotion", [
+                                                "neutral", "excited", "angry", "sad", "hopeful",
+                                                "friendly", "unfriendly", "cheerful", "whispering",
+                                                "terrified", "shouting", "assertive"
+                                            ])
         pitch_percent = st.slider("Pitch (%)", -50, 50, 0)
         rate_percent = st.slider("Rate (%)", -50, 50, 0)
         volume = st.selectbox("Volume", ["medium", "+3dB", "-3dB", "loud", "soft"])
