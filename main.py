@@ -8,9 +8,10 @@ import time
 import shutil
 import io
 import librosa
-import numpy as np
+import numpy as np  
 import matplotlib.pyplot as plt
 from PIL import Image
+import zipfile
 
 from utils.helpers import generate_user_id, save_user_data, load_existing_users, load_text_inputs, save_text_template
 from utils.youtube_downloader import download_youtube_audio
@@ -53,6 +54,7 @@ elif auth_status is None:
 elif auth_status:
     authenticator.logout("Logout", "sidebar")
     st.sidebar.success(f"👋 Welcome {name}")
+    st.session_state['is_logged_in'] = True
 
     # 💡 main app content continues here
 
@@ -75,7 +77,7 @@ elif auth_status:
 
     st.title("🗣️ Voice Cloning with Background Music")
     # 💡 main app content continues here...
-    
+
     # --- Block 1: Upload Voice ---
     if selected.startswith("📤 Upload Voice"):
         st.header("🎤 Register New User's Voice")
@@ -101,35 +103,63 @@ elif auth_status:
                 st.error("❌ Failed to get voice ID from Speechify.")
 
     # --- Block 2: Generate Audio ---
+# --- Block 2: Generate Audio ---
     elif selected.startswith("🗣️ Generate Audio"):
         st.header("🗣️ Generate Audio from Text")
         users = load_existing_users()
         selected_user = st.selectbox("Select User", list(users.keys()))
-        emotion = st.selectbox("Emotion", [
-                                                None,
-                                                "angry", "cheerful", "sad", "terrified", "relaxed",
-                                                "fearful", "surprised", "calm", "assertive", "energetic",
-                                                "warm", "direct", "bright"
-                                            ])
+        voice_id = users[selected_user]
 
-        rate = st.slider("Speech Rate (-50 to +50)", -50, 50, 0)
-        custom_text = st.text_area("Text to convert (optional)")
+        # --- Voice Settings ---
+        emotion = st.selectbox("Emotion", ["neutral", "excited", "angry", "sad", "hopeful"])
+        pitch_percent = st.slider("Pitch (%)", -50, 50, 0)
+        rate_percent = st.slider("Rate (%)", -50, 50, 0)
+        volume = st.selectbox("Volume", ["medium", "+3dB", "-3dB", "loud", "soft"])
+
+        # --- Text Input ---
+        custom_text = st.text_area("Text to convert (optional)", max_chars=5000)
+        preview_text = custom_text[:300]  # limit preview
         uploaded_excel = st.file_uploader("Excel with texts (optional)", type=["xlsx"])
 
         st.download_button("Download Excel Template", save_text_template(), file_name="Text_Template.xlsx")
 
-        if st.button("Generate Audio"):
+        # --- Preview Audio Button ---
+        if preview_text and st.button("🔊 Preview Audio"):
+            from utils.speechify_api import generate_preview_audio
+            audio_bytes = generate_preview_audio(
+                voice_id=voice_id,
+                text=preview_text,
+                rate=f"{rate_percent}%",
+                pitch=f"{pitch_percent}%",
+                volume=volume,
+                emotion=emotion
+            )
+            st.audio(audio_bytes, format="audio/mp3")
+
+        # --- Generate Full Podcast Button ---
+        if st.button("🎙 Generate Full Podcast"):
+            from utils.speechify_api import generate_full_audio_and_upload
             texts = load_text_inputs(uploaded_excel, custom_text)
-            for _, text in texts.items():
-                file_name = f"{uuid.uuid4().hex[:8]}"
-                output_path = generate_audio_from_text(text, users[selected_user], selected_user, file_name, emotion, rate)
-        
-                if output_path:
-                    cloud_url = upload_audio_to_cloudinary(output_path, folder="Generated_Audio", public_id=file_name)
-                    st.audio(output_path)
-                    if cloud_url:
-                        st.markdown(f"[Cloudinary Link]({cloud_url})")
+
+            for file_name, text in texts.items():
+                if uploaded_excel is None and file_name == "custom":
+                    file_name = f"{uuid.uuid4().hex[:8]}"
+                cloud_url, temp_path = generate_full_audio_and_upload(
+                    voice_id=voice_id,
+                    text=text,
+                    rate=f"{rate_percent}%",
+                    pitch=f"{pitch_percent}%",
+                    volume=volume,
+                    emotion=emotion,
+                    filename=file_name
+                )
+                if temp_path:
+                    st.audio(temp_path)
+                if cloud_url:
+                    st.markdown(f"[🔗 Cloudinary Link]({cloud_url})")
                 else:
+                    st.error("❌ Failed to generate audio.")
+
                     st.error("❌ Failed to generate audio.")
 
     # --- Block 3: Merge with Music ---
@@ -211,7 +241,7 @@ elif auth_status:
 
         import librosa
         import matplotlib.pyplot as plt
-        import numpy as np
+        import zipfile
 
         @st.cache_data
         def plot_waveform(audio_path):
@@ -249,6 +279,53 @@ elif auth_status:
                         if os.path.isfile(file_path) and file.lower().endswith(audio_extensions):
                             audio_files.append((None, file, file_path))
 
+                # Chọn nhiều file để tải
+                selected_files = []
+                if audio_files:
+                    with st.form(key=f"select_files_form_{folder}"):
+                        cols = st.columns([1, 8])
+                        with cols[0]:
+                            select_all = st.checkbox("Select All", key=f"select_all_{folder}")
+                        with cols[1]:
+                            st.write("")
+                        file_checks = []
+                        for idx, (user_folder, file, path) in enumerate(audio_files):
+                            display_name = f"{user_folder}/{file}" if user_folder else file
+                            checked = st.checkbox(display_name, key=f"check_{folder}_{user_folder}_{file}", value=select_all)
+                            file_checks.append(checked)
+                        submitted = st.form_submit_button("Update Selection")
+                    selected_files = [audio_files[i] for i, checked in enumerate(file_checks) if checked]
+
+                # Nút nén và tải các file đã chọn
+                if selected_files:
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+                        for user_folder, file, path in selected_files:
+                            arcname = f"{user_folder}/{file}" if user_folder else file
+                            zipf.write(path, arcname=arcname)
+                    zip_buffer.seek(0)
+                    st.download_button(
+                        label="⬇️ Download Selected as ZIP",
+                        data=zip_buffer,
+                        file_name=f"{folder}_selected.zip",
+                        mime="application/zip"
+                    )
+
+                # Nút nén và tải toàn bộ file trong thư mục (nếu muốn giữ lại)
+                if audio_files:
+                    zip_buffer = io.BytesIO()
+                    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zipf:
+                        for user_folder, file, path in audio_files:
+                            arcname = f"{user_folder}/{file}" if user_folder else file
+                            zipf.write(path, arcname=arcname)
+                    zip_buffer.seek(0)
+                    st.download_button(
+                        label="⬇️ Download All as ZIP",
+                        data=zip_buffer,
+                        file_name=f"{folder}.zip",
+                        mime="application/zip"
+                    )
+
                 if not audio_files:
                     st.write("No audio files found in this folder.")
                     continue
@@ -257,7 +334,7 @@ elif auth_status:
                     path = path.replace("\\", "/")
                     display_name = f"{user_folder}/{file}" if user_folder else file
 
-                    col1, col2, col3, col4 = st.columns([2, 3, 3, 1])
+                    col1, col2, col3, col4, col5 = st.columns([2, 3, 3, 1, 2])
 
                     with col1:
                         y, sr = librosa.load(path, sr=None)
@@ -288,6 +365,28 @@ elif auth_status:
                             os.remove(path)
                             st.warning(f"Deleted {display_name}")
                             st.rerun()
+
+                    with col5:
+                        rename_key = f"rename_{folder}_{user_folder}_{file}"
+                        if st.button("✏️ Rename", key=rename_key):
+                            st.session_state[rename_key + "_show"] = True
+                        if st.session_state.get(rename_key + "_show", False):
+                            new_name = st.text_input("New file name (include .mp3)", value=file, key=rename_key + "_input")
+                            if st.button("Xác nhận đổi tên", key=rename_key + "_confirm"):
+                                # Đường dẫn mới
+                                if user_folder:
+                                    new_path = os.path.join(base_path, user_folder, new_name)
+                                else:
+                                    new_path = os.path.join(base_path, new_name)
+                                if not os.path.exists(new_path):
+                                    os.rename(path, new_path)
+                                    st.success(f"Đã đổi tên thành {new_name}")
+                                    st.session_state[rename_key + "_show"] = False
+                                    st.rerun()
+                                else:
+                                    st.error("Tên file đã tồn tại!")
+                            if st.button("Huỷ", key=rename_key + "_cancel"):
+                                st.session_state[rename_key + "_show"] = False
 
                     st.markdown("---")
 
