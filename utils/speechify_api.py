@@ -69,19 +69,33 @@ def generate_preview_audio(voice_id, text, rate, pitch, volume, emotion):
         "Content-Type": "application/json",
         "Accept": "audio/mpeg"
     }
+
     ssml = build_ssml(xml_escape.escape(text), rate, pitch, volume)
+
     data = {
         "ssml": ssml,
         "voice_id": voice_id,
-        "voice_settings": {"emotion": emotion}
+        "voice_settings": {
+            "emotion": emotion
+        }
     }
-    r = requests.post("https://api.sws.speechify.com/v1/audio/stream", headers=headers, json=data)
-    
-    print("🔁 Preview Status:", r.status_code)
-    print("▶️ Response Content:", r.content[:100])  # chỉ in thử vài byte
-    print("📝 Payload:", data)
 
-    return r.content if r.status_code == 200 else None
+    r = requests.post("https://api.sws.speechify.com/v1/audio/stream", headers=headers, json=data)
+
+    print("🧪 Status Code:", r.status_code)
+    print("🧾 Response Headers:", r.headers)
+    print("📨 Request Payload:", data)
+
+    if r.status_code != 200:
+        print("❌ API ERROR:", r.text)
+        return None
+
+    if len(r.content) < 1000:
+        print("⚠️ Audio response too short:", len(r.content), "bytes")
+        return None
+
+    return r.content
+
 
 
 # Hàm generate full podcast
