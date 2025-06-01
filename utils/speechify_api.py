@@ -69,23 +69,20 @@ def generate_preview_audio(voice_id, text, rate, pitch, volume, emotion):
         "Content-Type": "application/json",
         "Accept": "audio/mpeg"
     }
-
     ssml = build_ssml(xml_escape.escape(text), rate, pitch, volume)
-
     data = {
         "ssml": ssml,
         "voice_id": voice_id,
         "voice_settings": {"emotion": emotion}
     }
+    r = requests.post("https://api.sws.speechify.com/v1/audio/stream", headers=headers, json=data)
+    
+    print("🔁 Preview Status:", r.status_code)
+    print("▶️ Response Content:", r.content[:100])  # chỉ in thử vài byte
+    print("📝 Payload:", data)
 
-    response = requests.post("https://api.sws.speechify.com/v1/audio/stream", headers=headers, json=data)
+    return r.content if r.status_code == 200 else None
 
-    if response.status_code == 200:
-        return response.content
-    else:
-        print("❌ Stream Preview Error:", response.status_code)
-        print("Response:", response.text)
-        return None
 
 # Hàm generate full podcast
 def generate_full_audio_and_upload(voice_id, text, rate, pitch, volume, emotion, filename):
