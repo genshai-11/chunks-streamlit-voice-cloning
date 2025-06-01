@@ -59,3 +59,64 @@ def generate_audio_from_text(text, voice_id, user_id, file_name, emotion=None, r
         print("❌ API Error:", response.status_code)
         print("Response:", response.text)
         return None
+
+def build_ssml(text, rate="medium", pitch="medium", volume="medium"):
+    return f'<speak><prosody rate="{rate}" pitch="{pitch}" volume="{volume}">{text}</prosody></speak>'
+
+def generate_preview_audio(voice_id, text, rate, pitch, volume, emotion):
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json",
+        "Accept": "audio/mpeg"
+    }
+
+    ssml = build_ssml(xml_escape.escape(text), rate, pitch, volume)
+
+    data = {
+        "ssml": ssml,
+        "voice_id": voice_id,
+        "voice_settings": {"emotion": emotion}
+    }
+
+    response = requests.post("https://api.sws.speechify.com/v1/audio/stream", headers=headers, json=data)
+
+    if response.status_code == 200:
+        return response.content
+    else:
+        print("❌ Stream Preview Error:", response.status_code)
+        print("Response:", response.text)
+        return None
+
+# Hàm generate full podcast
+def generate_full_audio_and_upload(voice_id, text, rate, pitch, volume, emotion, filename):
+    headers = {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    ssml = build_ssml(xml_escape.escape(text), rate, pitch, volume)
+
+    data = {
+        "ssml": ssml,
+        "voice_id": voice_id,
+        "audio_format": "mp3",
+        "voice_settings": {"emotion": emotion}
+    }
+
+    response = requests.post("https://api.sws.speechify.com/v1/audio/speech", headers=headers, json=data)
+
+    if response.status_code == 200:
+        audio_data = base64.b64decode(response.json().get("audio_data"))
+        output_path = f"data/Generated_Audio/{filename}.mp3"
+        with open(output_path, "wb") as f:
+            f.write(audio_data)
+
+        from utils.cloudinary_utils import upload_audio_to_cloudinary
+        cloud_url = upload_audio_to_cloudinary(output_path, folder="Generated_Audio", public_id=filename)
+
+        return cloud_url, output_path
+    else:
+        print("❌ Full Generation Error:", response.status_code)
+        print("Response:", response.text)
+        return None, None
+
